@@ -12,16 +12,16 @@ from dataclasses import dataclass
 from typing import Optional, List
 import logging
 
+load_dotenv()
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(os.getenv('LOG_FILE_PATH', '/var/log/health-activity-tracker.log')
+        logging.FileHandler(os.getenv('LOG_FILE_PATH', '/var/log/health-activity-tracker.log'))
     ]
 )
-
-load_dotenv()
 
 def load_token_data():
     try:
