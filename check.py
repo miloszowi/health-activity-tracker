@@ -10,6 +10,16 @@ import time
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from typing import Optional, List
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(os.getenv('LOG_FILE_PATH', '/var/log/health-activity-tracker.log')
+    ]
+)
 
 load_dotenv()
 
@@ -49,7 +59,7 @@ def get_strava_client():
 
 def save_tokens_if_refreshed(client: Client, original_expires_at: int):
     if client.token_expires != original_expires_at:
-        print("Token refreshed, updating.")
+        logging.info("Token refreshed, updating.")
 
         new_token_data = {
             "access_token": client.access_token,
@@ -67,7 +77,7 @@ def fetch_recent_activities(client: Client, minutes_ago=360) -> BatchedResultsIt
     now = datetime.now(timezone.utc)
     time_threshold = now - timedelta(minutes=minutes_ago)
 
-    print(f"Fetching activities uploaded after {time_threshold.isoformat()}")
+    logging.info(f"Fetching activities uploaded after {time_threshold.isoformat()}")
     activities = client.get_activities(after=time_threshold - timedelta(hours=1))
 
     recent_activities = []
@@ -139,7 +149,7 @@ def prepare_activity_data(activity) -> ConvertedActivity:
     
 def sync_to_google_sheets(activities_data: List[ConvertedActivity]):
     if not activities_data:
-        print("No new activities to upload.")
+        logging.info("No new activities to upload.")
         return
     
     try:
@@ -176,13 +186,13 @@ def sync_to_google_sheets(activities_data: List[ConvertedActivity]):
 
         worksheet.batch_update(batch_requests, value_input_option='USER_ENTERED')
         
-        print(f"Successfully uploaded {len(activities_data)} activities to Google Sheets!")
+        logging.info(f"Successfully uploaded {len(activities_data)} activities to Google Sheets!")
         
     except Exception as e:
-        print(f"Error uploading to Google Sheets: {e}")
+        logging.error(f"Error uploading to Google Sheets: {e}")
         raise
 
-print(f"=== Strava Sync Started at {datetime.now()} ===")
+logging.info(f"=== Strava Sync Started at {datetime.now()} ===")
     
 try:
     client, original_token_data = get_strava_client()
@@ -190,7 +200,7 @@ try:
     
     processed_activities = load_processed_activities()    
     recent_activities = fetch_recent_activities(client, minutes_ago=360)
-    print(f"Found {len(recent_activities)} new activities")
+    logging.info(f"Found {len(recent_activities)} new activities")
     
     new_activities = [
         activity for activity in recent_activities 
@@ -198,7 +208,7 @@ try:
     ]
     
     if not new_activities:
-        print("No new activities to process.")
+        logging.info("No new activities to process.")
         exit()
         
     batch_data = []
@@ -209,7 +219,7 @@ try:
             batch_data.append(prepare_activity_data(activity))
             new_activity_ids.add(activity.id)
         except Exception as e:
-            print(f"Error processing activity {activity.id}: {e}")
+            logging.info(f"Error processing activity {activity.id}: {e}")
             continue
     
     if batch_data:
@@ -220,10 +230,10 @@ try:
     
     save_tokens_if_refreshed(client, original_expires_at)
     
-    print("=== Sync completed successfully ===")
+    logging.info("=== Sync completed successfully ===")
     
 except Exception as e:
-    print(f"Error during sync: {e}")
-    print("=== Sync failed ===")
+    logging.error(f"Error during sync: {e}")
+    logging.error("=== Sync failed ===")
 
     raise
