@@ -98,6 +98,7 @@ class ConvertedActivity:
     distance: Optional[int]
     avg_hr: Optional[int]
     max_hr: Optional[int]
+    calories: Optional[int]
     avg_watt: Optional[int]
     max_watt: Optional[int]
     normalized_power: Optional[int]
@@ -126,6 +127,7 @@ def prepare_activity_data(activity) -> ConvertedActivity:
     distance = activity.distance if sport_type not in ["Stretch", "Exercise"] else 0
     avg_hr = activity.average_heartrate
     max_hr = activity.max_heartrate
+    calories = activity.calories
     avg_watt = activity.average_watts
     max_watt = activity.max_watts
     normalized_power = activity.weighted_average_watts
@@ -140,6 +142,7 @@ def prepare_activity_data(activity) -> ConvertedActivity:
         distance=distance,
         avg_hr=avg_hr,
         max_hr=max_hr,
+        calories=calories,
         avg_watt=avg_watt,
         max_watt=max_watt,
         normalized_power=normalized_power,
@@ -172,10 +175,11 @@ def sync_to_google_sheets(activities_data: List[ConvertedActivity]):
                 'F': activity.distance,
                 'H': activity.avg_hr if activity.avg_hr else '',
                 'J': activity.max_hr if activity.max_hr else '',
-                'K': activity.avg_watt if activity.avg_watt else '',
-                'L': activity.max_watt if activity.max_watt else '',
-                'M': activity.normalized_power if activity.normalized_power else '',
-                'N': activity.elevation if activity.elevation else ''
+                'K': activity.calories if activity.calories else '',
+                'L': activity.avg_watt if activity.avg_watt else '',
+                'M': activity.max_watt if activity.max_watt else '',
+                'N': activity.normalized_power if activity.normalized_power else '',
+                'O': activity.elevation if activity.elevation else ''
             }
             
             for col, value in updates.items():
