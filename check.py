@@ -96,6 +96,7 @@ class ConvertedActivity:
     sport_type: str
     duration: str
     distance: Optional[int]
+    avg_speed: Optional[float]
     avg_hr: Optional[int]
     max_hr: Optional[int]
     calories: Optional[int]
@@ -105,7 +106,8 @@ class ConvertedActivity:
     elevation: Optional[int]
     strava_url_formula: str
 
-def prepare_activity_data(activity) -> ConvertedActivity:
+def prepare_activity_data(activity: SummaryActivity) -> ConvertedActivity:
+    activity = client.get_activity(activity_id=activity.id)
     map_sport_type = {
         "EBikeRide": "Bike",
         "Hike": "Walk",
@@ -125,9 +127,10 @@ def prepare_activity_data(activity) -> ConvertedActivity:
     sport_type = map_sport_type.get(activity.sport_type.root, activity.sport_type.root)
     duration = f"=TIME(0;0;{activity.moving_time})"
     distance = activity.distance if sport_type not in ["Stretch", "Exercise"] else 0
+    avg_speed = activity.average_speed
+    calories = activity.calories
     avg_hr = activity.average_heartrate
     max_hr = activity.max_heartrate
-    calories = activity.calories
     avg_watt = activity.average_watts
     max_watt = activity.max_watts
     normalized_power = activity.weighted_average_watts
@@ -140,6 +143,7 @@ def prepare_activity_data(activity) -> ConvertedActivity:
         sport_type=sport_type,
         duration=duration,
         distance=distance,
+        avg_speed=avg_speed,
         avg_hr=avg_hr,
         max_hr=max_hr,
         calories=calories,
@@ -173,6 +177,7 @@ def sync_to_google_sheets(activities_data: List[ConvertedActivity]):
                 'C': activity.sport_type,
                 'E': activity.duration,
                 'F': activity.distance,
+                'G': activity.avg_speed,
                 'H': activity.avg_hr if activity.avg_hr else '',
                 'J': activity.max_hr if activity.max_hr else '',
                 'K': activity.calories if activity.calories else '',
