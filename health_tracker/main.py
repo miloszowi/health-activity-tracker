@@ -10,7 +10,7 @@ from health_tracker.provider.activities.activities_source import ActivitiesSourc
 from health_tracker.provider.health.health_source import HealthSource
 
 from health_tracker.sync_service import SyncService
-from utils.click_styling import info, error, success, warn, step
+from health_tracker.utils.click_styling import info, error, success, warn, step
 
 load_dotenv()
 logging.basicConfig(

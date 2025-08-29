@@ -8,7 +8,7 @@ from health_tracker.destination.health.health_target import HealthTarget
 from health_tracker.provider.activities.activities_source import ActivitiesSource
 from health_tracker.provider.health.health_source import HealthSource
 
-from utils.click_styling import info, error, success, step
+from health_tracker.utils.click_styling import info, error, success, step
 
 
 class SyncService:
