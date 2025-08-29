@@ -28,7 +28,7 @@ class GoogleSheets(Destination):
 
         row = self._find_or_create_row_by_date(ws, date)
         mapping = os.getenv("HEALTH_COLUMNS", "")
-        updates = self._build_updates(mapping, data, row, date=date)
+        updates = self._build_updates(ws.title, mapping, data, row, date=date)
 
         self._batch_update(ws, updates)
 
@@ -42,7 +42,7 @@ class GoogleSheets(Destination):
         batch_requests = []
         for i, activity in enumerate(activities, start=0):
             row = next_row + i
-            batch_requests.extend(self._build_updates(mapping, activity, row))
+            batch_requests.extend(self._build_updates(ws.title, mapping, activity, row))
 
         self._batch_update(ws, batch_requests)
 
@@ -58,10 +58,11 @@ class GoogleSheets(Destination):
     def _batch_update(self, ws, updates: List[dict]):
         if not updates:
             return
+
         body = {"valueInputOption": "USER_ENTERED", "data": updates}
         ws.spreadsheet.values_batch_update(body)
 
-    def _build_updates(self, mapping: str, obj, row: int, date: str = None):
+    def _build_updates(self, ws_title: str, mapping: str, obj, row: int, date: str = None):
         updates = []
         for part in mapping.split(","):
             if not part.strip():
@@ -77,5 +78,8 @@ class GoogleSheets(Destination):
                     value = value.strftime("%Y-%m-%d %H:%M:%S")
 
             if value not in ("", None):
-                updates.append({"range": f"{col}{row}", "values": [[value]]})
+                updates.append({
+                    "range": f"{ws_title}!{col}{row}",
+                    "values": [[value]]
+                })
         return updates
