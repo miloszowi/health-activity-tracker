@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "health-activity-tracker"
+version = "0.1.0"
+description = "Sync health data from Garmin and Strava to Google Sheets"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0",
+    "python-dotenv>=0.19",
+    "pandas>=1.3",
+    "gspread>=5.0",
+    "garminconnect",
+    "stravalib",
+    "garth @ git+https://github.com/miloszowi/garth.git@main",
+    "pydantic"
+]
+
+[project.scripts]
+health-sync = "health_tracker.main:cli"
+
+[tool.pydantic]
+validate_assignment = false
+arbitrary_types_allowed = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["health_tracker*"]

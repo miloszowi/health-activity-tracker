@@ -1,22 +1,72 @@
-# health-activity-tracker
+# 🏃‍♂️ Health Activity Tracker  
 
-automatically fetch strava activities & garmin health to a defined google sheet
-sheet draft: https://docs.google.com/spreadsheets/d/1VfEODBPIlzlbpqyD_8aGmGfZALvCgcMaKNx4TubFlQY
+**Health Activity Tracker** is a CLI tool to sync your **fitness and health data** from providers like **Garmin** and **Strava** into destinations like **Google Sheets**.  
 
-## Installation
-- python -m venv venv
-- source venv/bin/activate
-- pip install -r requirements.txt
-- cp `.env.example` `.env` and fill in the values
-- cp `strava_token.json.example` `strava_token.json` and fill in the values (check out stravalib python package for obtaining first oauth access_token)
-- cp `processed_activities.json.example` `processed_activities.json` (can be empty initially)
-- `python check.py` to run
+- 📊 **Health sync** → Garmin sleep, HRV, stress, body battery, etc.  
+- 🏃 **Activities sync** → Strava runs, rides, swims, etc.
+---
 
-for google auth:
-- create OAuth 2.0 Client IDs in Google Cloud Console
-- create service account and download the JSON key file
-- copy service_account.json to ~/.config/gspread/service_account.json
+## 📦 Installation  
 
-for strava:
-- create an app in Strava Developer settings
-- get client_id, client_secret and refresh_token and put them in .env
+Clone the repo and install dependencies:  
+
+```bash
+git clone https://github.com/miloszowi/health-activity-tracker.git
+cd health-activity-tracker
+pip install -e .
+```
+
+Or directly from GitHub in another project:
+```bash
+# pyproject.toml
+dependencies = [
+  "health-activity-tracker @ git+https://github.com/<your-username>/health-activity-tracker.git@main"
+]
+```
+
+## Configuration
+```bash
+cp .env.example .env
+vi .env
+```
+
+## Auth
+
+### Strava
+
+[Register an app in Strava API](https://www.strava.com/settings/api)
+
+Get your tokens and save them to strava_tokens.json: (see `stravalib` for obtaining first oauth token)
+
+```json
+{
+  "access_token": "...",
+  "refresh_token": "...",
+  "expires_at": 1234567890
+}
+```
+
+### Garmin
+
+Configure credentials for Garmin Connect (handled via garth/garminconnect).
+
+Follow prompts on first login.
+
+## Usage
+
+### Health data sync
+```bash
+python health_tracker/main.py sync-health \
+  --source garmin \
+  --target sheets \
+  --start-date 2025-08-01 \
+  --end-date 2025-08-10
+```
+
+### Activities data sync
+```bash
+python health_tracker/main.py sync-activities \
+  --source strava \
+  --target sheets \
+  --minutes-ago 720
+```
