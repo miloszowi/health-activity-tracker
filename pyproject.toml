@@ -15,7 +15,8 @@ dependencies = [
     "garminconnect",
     "stravalib",
     "garth @ git+https://github.com/miloszowi/garth.git@main",
-    "pydantic"
+    "pydantic",
+    "notion-client"
 ]
 
 [project.scripts]

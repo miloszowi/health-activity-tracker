@@ -1,5 +1,9 @@
+import datetime
+import sys
+
 import click
 import logging
+import asyncio
 from dotenv import load_dotenv
 import os
 from datetime import date
@@ -8,19 +12,29 @@ from health_tracker.destination.activities.activities_target import ActivitiesTa
 from health_tracker.destination.health.health_target import HealthTarget
 from health_tracker.provider.activities.activities_source import ActivitiesSource
 from health_tracker.provider.health.health_source import HealthSource
+from notionary import NotionPage, NotionDatabase
 
 from health_tracker.sync_service import SyncService
 from health_tracker.utils.click_styling import info, error, success, warn, step
 
 load_dotenv()
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(os.getenv('LOG_FILE_PATH', '/var/log/health-activity-tracker.log'))
-    ]
+logger = logging.getLogger("health-tracker")
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.DEBUG)
+console_handler.setFormatter(formatter)
+
+file_handler = logging.FileHandler(os.getenv('LOG_FILE_PATH', '/var/log/health-activity-tracker.log'), mode="a")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 
 @click.group()
@@ -90,6 +104,41 @@ def sync_activities(source: str, target: str, minutes_ago: int):
         success(f"Activities sync from {activities_source.label} to {activities_target.label} completed successfully ✅")
     except Exception as e:
         error(f"Activities sync failed: {e}")
+
+def test():
+    from notion_client import Client
+
+    client = Client(auth=os.environ.get("NOTION_SECRET"))
+    today = datetime.date.today().strftime('%Y-%m-%d')
+    query = client.databases.query(
+        **{
+            "database_id": os.environ.get("NOTION_DATABASE_ID"),
+            "filter": {
+                "property": "Date",
+                "title": {
+                    "equals": today
+                }
+            }
+        }
+    )
+    results = query.get("results", [])
+    if results:
+        page = results[0]
+        page_id = page["id"]
+    else:
+        # Create new page (row)
+        page = client.pages.create(
+            parent={"database_id": os.environ.get("NOTION_DATABASE_ID")},
+            properties={
+                "Title": {
+                    "title": [
+                        {"text": {"content": today}}
+                    ]
+                }
+            }
+        )
+        page_id = page["id"]
+
 
 
 if __name__ == "__main__":

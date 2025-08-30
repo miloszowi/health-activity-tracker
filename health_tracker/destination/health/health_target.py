@@ -2,10 +2,12 @@ from enum import Enum
 from functools import cached_property
 
 from health_tracker.destination.google_sheets import GoogleSheets
+from health_tracker.destination.notion import Notion
 
 
 class HealthTarget(Enum):
     SHEETS = ("sheets", GoogleSheets)
+    NOTION = ("notion", Notion)
 
     def __init__(self, label: str, factory):
         self._label = label
