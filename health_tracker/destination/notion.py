@@ -47,7 +47,7 @@ class Notion(Destination):
             **{
                 "database_id": database_id,
                 "filter": {
-                    "property": "Date",
+                    "property": "Title",
                     "title": {
                         "equals": date
                     }
@@ -66,15 +66,25 @@ class Notion(Destination):
         """Returns page_id"""
         import logging
 
-        logging.info(f'importing: {date}')
+        iso_date = self._normalize_date(date)
+
         page = self.client.pages.create(
             parent={"database_id": database_id},
             properties={
-                "Date": {
+                "Title": {
                     "title": [
                         {"text": {"content": date}}
                     ]
+                },
+                "Date": {
+                    "date": {"start": iso_date}
                 }
             }
         )
         return page["id"]
+
+    def _normalize_date(self, date_str: str) -> str:
+        """Ensure date string is ISO8601 for Notion Date property."""
+        if "T" not in date_str and " " in date_str:
+            date_str = date_str.replace(" ", "T", 1)
+        return date_str
