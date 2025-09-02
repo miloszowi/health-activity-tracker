@@ -22,7 +22,7 @@ class SheetsHealthMapper(HealthMapper):
                 value = getattr(data, field)
                 if value is not None:
                     updates.append({
-                        "range": f"{self.ws_title}!{col}",
+                        "range": f"{col}",
                         "values": [[value]]
                     })
         

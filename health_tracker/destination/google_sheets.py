@@ -37,7 +37,7 @@ class GoogleSheets(Destination):
         updates = self.health_mapper.map_health(data)
         
         for update in updates:
-            update["range"] = f"{update['range']}{row}"
+            update["range"] = f"{worksheet_name}!{update['range']}{row}"
         
         updates.append({
             "range": f"{ws.title}!A{row}",
