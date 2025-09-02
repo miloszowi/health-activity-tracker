@@ -4,45 +4,68 @@ import gspread
 
 from health_tracker.data.day_health_data import DayHealthData
 from health_tracker.data.activity_data import ActivityData
-from health_tracker.destination.destination import Destination
+from health_tracker.destination.base import Destination
+from health_tracker.utils.config_loader import config_get, config_get_path
+from health_tracker.destination.mapper.sheets_health_mapper import SheetsHealthMapper
+from health_tracker.destination.mapper.sheets_activity_mapper import SheetsActivityMapper
 
 
 class GoogleSheets(Destination):
     """Destination that writes health & activities data directly into Google Sheets."""
 
     def __init__(self):
-        creds_file = os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON")
-        if not creds_file:
-            raise ValueError("Missing GOOGLE_SHEETS_CREDENTIALS_JSON env var")
-        gc = gspread.service_account(filename=creds_file)
+        creds_file = config_get_path('google_sheets.credentials_file')
+        if not creds_file or not creds_file.exists():
+            raise ValueError("Missing Google Sheets credentials file. Configure in config.yaml")
 
-        spreadsheet_url = os.getenv("GOOGLE_SHEETS_SPREADSHEET_URL")
+        gc = gspread.service_account(filename=str(creds_file))
+
+        spreadsheet_url = config_get('google_sheets.spreadsheet_url')
         if not spreadsheet_url:
-            raise ValueError("Missing GOOGLE_SHEETS_SPREADSHEET_URL env var")
+            raise ValueError("Missing Google Sheets spreadsheet URL. Set GOOGLE_SHEETS_SPREADSHEET_URL env var or configure in config.yaml")
 
         self.spreadsheet = gc.open_by_url(spreadsheet_url)
+        
+        self.health_mapper = SheetsHealthMapper()
+        self.activity_mapper = SheetsActivityMapper()
 
     def update_health_data(self, date: str, data: DayHealthData):
-        worksheet_name = os.getenv("HEALTH_WORKSHEET_NAME")
+        worksheet_name = config_get('google_sheets.worksheets.health', env_key='HEALTH_WORKSHEET_NAME')
         ws = self.spreadsheet.worksheet(worksheet_name)
 
         row = self._find_or_create_row_by_date(ws, date)
-        mapping = os.getenv("HEALTH_COLUMNS", "")
-        updates = self._build_updates(ws.title, mapping, data, row, date=date)
-
+        updates = self.health_mapper.map_health(data)
+        
+        for update in updates:
+            update["range"] = f"{update['range']}{row}"
+        
+        updates.append({
+            "range": f"A{row}",
+            "values": [[date]]
+        })
+        
         self._batch_update(ws, updates)
 
     def update_activities(self, activities: List[ActivityData]):
-        worksheet_name = os.getenv("ACTIVITIES_WORKSHEET_NAME")
+        worksheet_name = config_get('google_sheets.worksheets.activities', env_key='ACTIVITIES_WORKSHEET_NAME')
         ws = self.spreadsheet.worksheet(worksheet_name)
         values = ws.get_all_values()
         next_row = len(values) + 1
 
-        mapping = os.getenv("ACTIVITIES_COLUMNS", "")
         batch_requests = []
         for i, activity in enumerate(activities, start=0):
             row = next_row + i
-            batch_requests.extend(self._build_updates(ws.title, mapping, activity, row))
+            updates = self.activity_mapper.map(activity)
+            
+            for update in updates:
+                update["range"] = f"{update['range']}{row}"
+            
+            updates.append({
+                "range": f"A{row}",
+                "values": [[activity.date.strftime(config_get('data.datetime_format'))]]
+            })
+            
+            batch_requests.extend(updates)
 
         self._batch_update(ws, batch_requests)
 
@@ -61,25 +84,3 @@ class GoogleSheets(Destination):
 
         body = {"valueInputOption": "USER_ENTERED", "data": updates}
         ws.spreadsheet.values_batch_update(body)
-
-    def _build_updates(self, ws_title: str, mapping: str, obj, row: int, date: str = None):
-        updates = []
-        for part in mapping.split(","):
-            if not part.strip():
-                continue
-            col, field = part.split(":")
-            value = None
-            if field == "date" and date:
-                value = date
-            elif hasattr(obj, field):
-                attr = getattr(obj, field)
-                value = attr() if callable(attr) else attr
-                if hasattr(value, "isoformat"):
-                    value = value.strftime("%Y-%m-%d %H:%M:%S")
-
-            if value not in ("", None):
-                updates.append({
-                    "range": f"{ws_title}!{col}{row}",
-                    "values": [[value]]
-                })
-        return updates

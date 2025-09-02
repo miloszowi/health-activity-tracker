@@ -1,0 +1,54 @@
+# Notion mapping for activity data
+# Maps ActivityData fields to Notion database properties
+
+date:
+  name: "Date"
+  type: "title"
+
+sport_type:
+  name: "Sport Type"
+  type: "select"
+
+duration_seconds:
+  name: "Duration (seconds)"
+  type: "number"
+
+distance:
+  name: "Distance"
+  type: "number"
+
+avg_speed:
+  name: "Average Speed"
+  type: "number"
+
+avg_hr:
+  name: "Average HR"
+  type: "number"
+
+max_hr:
+  name: "Max HR"
+  type: "number"
+
+calories:
+  name: "Calories"
+  type: "number"
+
+avg_watt:
+  name: "Average Power"
+  type: "number"
+
+max_watt:
+  name: "Max Power"
+  type: "number"
+
+normalized_power:
+  name: "Normalized Power"
+  type: "number"
+
+elevation:
+  name: "Elevation Gain"
+  type: "number"
+
+url:
+  name: "Activity URL"
+  type: "url"

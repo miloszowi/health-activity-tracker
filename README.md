@@ -1,72 +1,121 @@
-# 🏃‍♂️ Health Activity Tracker  
+# Health Activity Tracker
 
-**Health Activity Tracker** is a CLI tool to sync your **fitness and health data** from providers like **Garmin** and **Strava** into destinations like **Google Sheets**.  
+A comprehensive health and activity data synchronization tool that integrates with Garmin, Strava, Google Sheets, and Notion.
 
-- 📊 **Health sync** → Garmin sleep, HRV, stress, body battery, etc.  
-- 🏃 **Activities sync** → Strava runs, rides, swims, etc.
----
+## Features
 
-## 📦 Installation  
+- **Health Data Sync**: Automatically sync health metrics from Garmin Connect
+- **Activity Sync**: Sync activities from Strava with configurable time ranges
+- **Multiple Destinations**: Support for Google Sheets and Notion
+- **Configurable Mappings**: YAML-based field mappings for each destination
+- **Flexible Configuration**: Local config overrides with sensible defaults
 
-Clone the repo and install dependencies:  
+## Quick Start
+
+### 1. Clone and Setup
 
 ```bash
-git clone https://github.com/miloszowi/health-activity-tracker.git
+git clone <your-repo>
 cd health-activity-tracker
-pip install -e .
+python -m health_tracker.main setup-config
+python -m health_tracker.main setup-main-config
 ```
 
-Or directly from GitHub in another project:
+### 2. Configure
+
+Copy and customize the configuration files:
+
+- **Main config**: `config/config.yaml` (paths, database IDs, etc.)
+- **Mappings**: `config/mapping/` (field mappings for each destination)
+
+### 3. Set Environment Variables
+
+Create `.env` file with your secrets:
+
 ```bash
-# pyproject.toml
-dependencies = [
-  "health-activity-tracker @ git+https://github.com/<your-username>/health-activity-tracker.git@main"
-]
+# Garmin credentials
+GARMIN_EMAIL=your_email@example.com
+GARMIN_PASSWORD=your_password
+
+# Notion API
+NOTION_SECRET=your_notion_integration_token
+
+# Strava API
+STRAVA_CLIENT_ID=your_strava_client_id
+STRAVA_CLIENT_SECRET=your_strava_client_secret
+STRAVA_REFRESH_TOKEN=your_strava_refresh_token
+```
+
+### 4. Run Sync
+
+```bash
+# Sync health data to Google Sheets
+python -m health_tracker.main sync-health --target sheets
+
+# Sync activities from specific date range to Notion
+python -m health_tracker.main sync-activities \
+    --target notion \
+    --start-date "2024-01-01 00:00:00" \
+    --end-date "2024-01-31 23:59:59"
+
+# Sync activities from specific date range to Google Sheets
+python -m health_tracker.main sync-activities \
+    --target sheets \
+    --start-date "2024-01-01 00:00:00" \
+    --end-date "2024-01-31 23:59:59"
 ```
 
 ## Configuration
+
+### Main Configuration (`config/config.yaml`)
+
+Configure paths, database IDs, and other settings:
+
+```yaml
+google_sheets:
+  credentials_file: "google_sheets_credentials.json"
+  spreadsheet_url: "your_spreadsheet_url"
+  worksheets:
+    health: "Health"
+    activities: "Activities"
+
+notion:
+  databases:
+    health: "your_health_database_id"
+    activities: "your_activities_database_id"
+
+garmin:
+  token_dir: ".garminconnect"
+
+strava:
+  token_file: "strava_tokens.json"
+  processed_file: "processed_activities.json"
+```
+
+### Mapping Configuration
+
+Customize field mappings for each destination in `config/mapping/`:
+
+- **Google Sheets**: Column mappings
+- **Notion**: Property mappings with types
+
+## CLI Commands
+
 ```bash
-cp .env.example .env
-vi .env
+# Configuration management
+python -m health_tracker.main setup-config          # Setup mapping structure
+python -m health_tracker.main setup-main-config     # Setup main config
+python -m health_tracker.main mapping-info          # Show available mappings
+python -m health_tracker.main config-info           # Show current config
+
+# Data synchronization
+python -m health_tracker.main sync-health --target <target>
+python -m health_tracker.main sync-activities --target <target> --start-date <date> --end-date <date>
 ```
 
-## Auth
+## Features
 
-### Strava
-
-[Register an app in Strava API](https://www.strava.com/settings/api)
-
-Get your tokens and save them to strava_tokens.json: (see `stravalib` for obtaining first oauth token)
-
-```json
-{
-  "access_token": "...",
-  "refresh_token": "...",
-  "expires_at": 1234567890
-}
-```
-
-### Garmin
-
-Configure credentials for Garmin Connect (handled via garth/garminconnect).
-
-Follow prompts on first login.
-
-## Usage
-
-### Health data sync
-```bash
-python health_tracker/main.py sync-health \
-  --source garmin \
-  --target sheets \
-  --start-date 2025-08-01 \
-  --end-date 2025-08-10
-```
-
-### Activities data sync
-```bash
-python health_tracker/main.py sync-activities \
-  --source strava \
-  --target sheets \
-  --minutes-ago 720
-```
+- **Providers**: Garmin (health), Strava (activities)
+- **Destinations**: Google Sheets, Notion
+- **Mapping System**: YAML-based field mappings with local override support
+- **Configuration**: Layered config system (env > local > default)

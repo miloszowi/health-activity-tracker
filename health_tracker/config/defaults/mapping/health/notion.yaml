@@ -1,0 +1,79 @@
+date:
+  name: "Date"
+  type: "title"
+
+sleep_hours:
+  name: "Sleep Hours"
+  type: "number"
+
+sleep_score:
+  name: "Sleep Score"
+  type: "number"
+
+sleep_deep_hours:
+  name: "Deep Sleep Hours"
+  type: "number"
+
+sleep_rem_hours:
+  name: "REM Sleep Hours"
+  type: "number"
+
+sleep_awake_minutes:
+  name: "Awake Minutes"
+  type: "number"
+
+sleep_awake_count:
+  name: "Awake Count"
+  type: "number"
+
+average_sleep_stress:
+  name: "Sleep Stress"
+  type: "number"
+
+sleep_needed_hours:
+  name: "Sleep Needed"
+  type: "number"
+
+average_spo2_value:
+  name: "SpO2"
+  type: "number"
+
+average_overnight_hrv:
+  name: "Overnight HRV"
+  type: "number"
+
+resting_heart_rate:
+  name: "Resting HR"
+  type: "number"
+
+average_stress_level:
+  name: "Stress Level"
+  type: "number"
+
+stress_hours:
+  name: "Stress Hours"
+  type: "number"
+
+weight:
+  name: "Weight"
+  type: "number"
+
+body_battery:
+  name: "Body Battery"
+  type: "number"
+
+run_vo2max:
+  name: "Run VO2 Max"
+  type: "number"
+
+bike_vo2max:
+  name: "Bike VO2 Max"
+  type: "number"
+
+bike_ftp:
+  name: "Bike FTP"
+  type: "number"
+
+total_steps:
+  name: "Total Steps"
+  type: "number"

@@ -1,89 +1,19 @@
+from health_tracker.data.activity_data import ActivityData
 from health_tracker.data.day_health_data import DayHealthData
+from health_tracker.utils.mapping_loader import load_health_mapping, load_activity_mapping, TargetType
 
 
 class NotionMapper:
-    COLUMN_MAP = {
-        "sleepHours": {
-            "name": "Sleep",
-            "type": "number"
-        },
-        "sleepScore": {
-            "name": "Sleep Score",
-            "type": "number"
-        },
-        "sleepRemHours": {
-            "name": "Sleep REM",
-            "type": "number"
-        },
-        "sleepAwakeMinutes": {
-            "name": "Sleep Awake",
-            "type": "number"
-        },
-        "sleepAwakeCount": {
-            "name": "Awake N",
-            "type": "number"
-        },
-        "averageSleepStress": {
-            "name": "Sleep Stress",
-            "type": "number"
-        },
-        "sleepNeededHours": {
-            "name": "Sleep Need",
-            "type": "number"
-        },
-        "averageSpO2Value": {
-            "name": "Avg SpO2",
-            "type": "number"
-        },
-        "averageOvernightHrv": {
-            "name": "HRV",
-            "type": "number"
-        },
-        "restingHeartRate": {
-            "name": "Resting HR",
-            "type": "number"
-        },
-        "averageStressLevel": {
-            "name": "Avg Stress",
-            "type": "number"
-        },
-        "stressHours": {
-            "name": "Stress Duration",
-            "type": "number"
-        },
-        "weight": {
-            "name": "Weight",
-            "type": "number"
-        },
-        "bodyBattery": {
-            "name": "Body Battery",
-            "type": "number"
-        },
-        "runVO2max": {
-            "name": "Run VO2Max",
-            "type": "number"
-        },
-        "bikeVO2max": {
-            "name": "Bike VO2max",
-            "type": "number"
-        },
-        "bikeFTP": {
-            "name": "Bike FTP",
-            "type": "number"
-        },
-        "totalSteps": {
-            "name": "Total Steps",
-            "type": "number"
-        },
-    }
-
     def __init__(self):
-        pass
+        self.health_mapping = load_health_mapping(TargetType.NOTION)
+        self.activity_mapping = load_activity_mapping(TargetType.NOTION)
 
-    def map(self, dto: DayHealthData) -> dict:
+    def map_health(self, dto: DayHealthData) -> dict:
         props = {}
-        for dto_field, cfg in self.COLUMN_MAP.items():
-            value = getattr(dto, dto_field)
+
+        for dto_field, cfg in self.health_mapping.items():
+            value = getattr(dto, dto_field, None)
+
             if value is None:
                 continue
 
@@ -102,5 +32,38 @@ class NotionMapper:
                 }
             elif notion_type == "date":
                 props[notion_name] = {"date": {"start": value}}
+            elif notion_type == "select":
+                props[notion_name] = {"select": {"name": str(value)}}
+
+        return {"properties": props}
+
+    def map_activity(self, dto: ActivityData) -> dict:
+        props = {}
+
+        for dto_field, cfg in self.activity_mapping.items():
+            value = getattr(dto, dto_field, None)
+
+            if value is None:
+                continue
+
+            notion_name = cfg["name"]
+            notion_type = cfg["type"]
+
+            if notion_type == "number":
+                props[notion_name] = {"number": float(value)}
+            elif notion_type == "rich_text":
+                props[notion_name] = {
+                    "rich_text": [{"type": "text", "text": {"content": str(value)}}]
+                }
+            elif notion_type == "title":
+                props[notion_name] = {
+                    "title": [{"type": "text", "text": {"content": str(value)}}]
+                }
+            elif notion_type == "date":
+                props[notion_name] = {"date": {"start": value}}
+            elif notion_type == "select":
+                props[notion_name] = {"select": {"name": str(value)}}
+            elif notion_type == "url":
+                props[notion_name] = {"url": str(value)}
 
         return {"properties": props}

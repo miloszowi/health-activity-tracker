@@ -1,0 +1,30 @@
+# Default configuration for Health Activity Tracker
+# This file contains default settings that can be overridden locally
+# Copy this to config/config.yaml in your project root to customize
+
+logging:
+  file_path: "/var/log/health-activity-tracker.log"
+  level: "INFO"
+
+google_sheets:
+  credentials_file: "service_account.json"
+  spreadsheet_url: "https://docs.google.com/spreadsheets/d/<your-id>"
+  worksheets:
+    health: "Health"  # name of the sheet
+    activities: "Activities"  # name of the sheet
+
+notion:
+  databases:
+    health: "" # uuid
+    activities: "" # uuid
+
+garmin:
+  token_dir: ".garminconnect"
+
+strava:
+  token_file: "strava_tokens.json"
+  processed_file: "processed_activities.json"
+
+data:
+  date_format: "%Y-%m-%d"
+  datetime_format: "%Y-%m-%d %H:%M:%S" 

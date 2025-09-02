@@ -1,0 +1,13 @@
+A: date
+B: url
+C: sport_type
+D: duration_seconds
+E: distance
+F: avg_speed
+G: avg_hr
+H: max_hr
+I: calories
+J: avg_watt
+K: max_watt
+L: normalized_power
+M: elevation

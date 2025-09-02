@@ -16,7 +16,8 @@ dependencies = [
     "stravalib",
     "garth @ git+https://github.com/miloszowi/garth.git@main",
     "pydantic",
-    "notion-client"
+    "notion-client",
+    "pyyaml"
 ]
 
 [project.scripts]

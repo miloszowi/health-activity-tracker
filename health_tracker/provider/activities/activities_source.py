@@ -1,6 +1,7 @@
 from enum import Enum
-from functools import cached_property
 
+from health_tracker.destination.destination import Target
+from health_tracker.provider.abstract.activities_provider import ActivitiesProvider
 from health_tracker.provider.activities.strava import StravaActivitiesProvider
 
 
@@ -15,9 +16,8 @@ class ActivitiesSource(Enum):
     def label(self) -> str:
         return self._label
 
-    @cached_property
-    def provider(self):
-        return self._provider_cls()
+    def provider(self, target: Target) -> ActivitiesProvider:
+        return self._provider_cls(target)
 
     @classmethod
     def choices(cls):
