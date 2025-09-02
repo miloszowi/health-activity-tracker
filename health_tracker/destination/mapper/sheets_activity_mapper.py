@@ -1,5 +1,6 @@
 from health_tracker.destination.mapper.abstract_activity_mapper import AbstractActivityMapper
 from health_tracker.data.activity_data import ActivityData
+from health_tracker.utils.config_loader import config_get
 from health_tracker.utils.mapping_loader import load_activity_mapping, TargetType
 
 
@@ -8,6 +9,7 @@ class SheetsActivityMapper(AbstractActivityMapper):
     
     def __init__(self):
         self.mapping = load_activity_mapping(TargetType.SHEETS)
+        self.ws_title = config_get('google_sheets.worksheets.activities')
     
     def map(self, activity: ActivityData) -> dict:
         """Map activity data to Google Sheets format"""
@@ -25,7 +27,7 @@ class SheetsActivityMapper(AbstractActivityMapper):
                         value = f"=TIME(0;0;{value})"
                     
                     updates.append({
-                        "range": f"{col}",
+                        "range": f"${self.ws_title}!{col}",
                         "values": [[value]]
                     })
         

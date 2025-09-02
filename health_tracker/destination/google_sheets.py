@@ -40,7 +40,7 @@ class GoogleSheets(Destination):
             update["range"] = f"{update['range']}{row}"
         
         updates.append({
-            "range": f"A{row}",
+            "range": f"{ws.title}!A{row}",
             "values": [[date]]
         })
         
@@ -61,7 +61,7 @@ class GoogleSheets(Destination):
                 update["range"] = f"{update['range']}{row}"
             
             updates.append({
-                "range": f"A{row}",
+                "range": f"{ws.title}!A{row}",
                 "values": [[activity.date.strftime(config_get('data.datetime_format'))]]
             })
             

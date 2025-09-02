@@ -1,5 +1,6 @@
 from health_tracker.destination.mapper.health_mapper import HealthMapper
 from health_tracker.data.day_health_data import DayHealthData
+from health_tracker.utils.config_loader import config_get
 from health_tracker.utils.mapping_loader import load_health_mapping, TargetType
 
 
@@ -8,6 +9,7 @@ class SheetsHealthMapper(HealthMapper):
     
     def __init__(self):
         self.mapping = load_health_mapping(TargetType.SHEETS)
+        self.ws_title = config_get('google_sheets.worksheets.activities')
     
     def map_health(self, data: DayHealthData) -> dict:
         """Map health data to Google Sheets format"""
@@ -20,7 +22,7 @@ class SheetsHealthMapper(HealthMapper):
                 value = getattr(data, field)
                 if value is not None:
                     updates.append({
-                        "range": f"{col}",
+                        "range": f"{self.ws_title}!{col}",
                         "values": [[value]]
                     })
         
